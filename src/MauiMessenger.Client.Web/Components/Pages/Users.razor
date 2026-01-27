@@ -1,0 +1,118 @@
+@page "/users"
+@rendermode InteractiveServer
+
+<PageTitle>Users</PageTitle>
+
+<h1>Users</h1>
+
+<EditForm Model="newUser" OnValidSubmit="CreateUserAsync" FormName="create-user">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Username</label>
+        <InputText class="form-control" @bind-Value="newUser.Username" @bind-Value:event="oninput" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Display name</label>
+        <InputText class="form-control" @bind-Value="newUser.DisplayName" @bind-Value:event="oninput" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <InputText class="form-control" @bind-Value="newUser.Email" @bind-Value:event="oninput" type="email" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Password</label>
+        <InputText class="form-control" @bind-Value="newUser.Password" @bind-Value:event="oninput" type="password" />
+    </div>
+
+    <button class="btn btn-primary" type="submit" disabled="@isSaving">Create user</button>
+</EditForm>
+
+@if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <div class="alert alert-danger mt-3">@errorMessage</div>
+}
+
+<hr />
+
+@if (users is null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (users.Count == 0)
+{
+    <p>No users found.</p>
+}
+else
+{
+    <ul class="list-group">
+        @foreach (var user in users)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>@user.DisplayName</strong>
+                    <div class="text-muted">@user.Username • @user.Email</div>
+                </div>
+                <span class="badge bg-secondary">@user.Id</span>
+            </li>
+        }
+    </ul>
+}
+
+@inject IJSRuntime JS
+
+@code {
+    [Inject] private ApiClient ApiClient { get; set; } = default!;
+
+    private List<UserDto>? users;
+    private CreateUserForm newUser = new();
+    private bool isSaving;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsersAsync();
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        errorMessage = null;
+        users = (await ApiClient.GetUsersAsync()).ToList();
+    }
+
+    private async Task CreateUserAsync()
+    {
+        errorMessage = null;
+        isSaving = true;
+
+        try
+        {
+            var request = new CreateUserRequest(newUser.Username, newUser.DisplayName, newUser.Email, newUser.Password);
+            await JS.InvokeVoidAsync("console.log", newUser);
+            await JS.InvokeVoidAsync("console.log", request);
+            await ApiClient.CreateUserAsync(request);
+            newUser = new CreateUserForm();
+            await LoadUsersAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private sealed class CreateUserForm
+    {
+        public string Username { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

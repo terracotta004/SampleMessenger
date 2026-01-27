@@ -1,0 +1,51 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "MauiMessenger.Api",
+            "type": "coreclr",
+            "request": "launch",
+            //"preLaunchTask": "dotnet build",
+            "program": "${workspaceFolder}/src/MauiMessenger.Api/bin/Debug/net10.0/MauiMessenger.Api.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/MauiMessenger.Api",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        },
+        {
+            "name": "MauiMessenger.Client.Web",
+            "type": "coreclr",
+            "request": "launch",
+            //"preLaunchTask": "dotnet build",
+            "program": "${workspaceFolder}/src/MauiMessenger.Client.Web/bin/Debug/net10.0/MauiMessenger.Client.Web.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/MauiMessenger.Client.Web",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "MauiMessenger.Api + Web",
+            "configurations": [
+                "MauiMessenger.Api",
+                "MauiMessenger.Client.Web"
+            ]
+        }
+    ]
+}
