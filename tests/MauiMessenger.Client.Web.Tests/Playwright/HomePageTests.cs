@@ -1,5 +1,4 @@
 using Microsoft.Playwright;
-
 namespace MauiMessenger.Client.Web.Tests.Playwright;
 
 [Collection("WebApp collection")]
@@ -36,20 +35,24 @@ public class HomePageTests
     [InlineData(false)]
     public async Task Counter_Increments(bool headless)
     {
+        //Arrange
         var browser = headless ? _fixture.Browser : _fixture.HeadedBrowser ?? _fixture.Browser;
         var page = await browser.NewPageAsync();
         try
         {
             await page.GotoAsync(new Uri(_fixture.BaseUrl, "counter").ToString());
-            await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+            await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            var status = page.Locator("[data-testid='counter-status']");
-            var button = page.Locator("[data-testid='counter-increment']");
+            //Act & Assert
+            var status = page.GetByTestId("counter-status");
+            var button = page.GetByTestId("counter-increment");
 
             await Assertions.Expect(status).ToHaveTextAsync("Current count: 0");
-            await page.EvaluateAsync(
-                "selector => document.querySelector(selector)?.click()",
-                "[data-testid='counter-increment']");
+            await Assertions.Expect(button).ToContainTextAsync("Click me");
+
+            //Act
+            await button.ClickAsync();
+
             await Assertions.Expect(status).ToHaveTextAsync("Current count: 1");
         }
         finally
