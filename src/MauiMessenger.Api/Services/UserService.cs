@@ -15,6 +15,26 @@ public class UserService : IUserService
         _userRepository = userRepository;
     }
 
+    public async Task<UserDto?> AuthenticateAsync(
+        string username,
+        string password,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+        {
+            return null;
+        }
+
+        var user = await _userRepository.GetByUsernameAsync(username.Trim(), cancellationToken);
+        if (user is null)
+        {
+            return null;
+        }
+
+        var hash = HashPassword(password);
+        return StringComparer.Ordinal.Equals(user.PasswordHash, hash) ? ToDto(user) : null;
+    }
+
     public async Task<UserDto> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;

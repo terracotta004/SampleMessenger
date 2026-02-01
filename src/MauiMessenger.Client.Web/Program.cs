@@ -32,6 +32,7 @@ public partial class Program
             var baseUrl = builder.Configuration.GetValue<string>("Api:BaseUrl") ?? "http://localhost:5010";
             client.BaseAddress = new Uri(baseUrl);
         });
+        builder.Services.AddScoped<CurrentUserState>();
 
         if (builder.Environment.IsEnvironment("Testing"))
         {
