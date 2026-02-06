@@ -26,7 +26,10 @@ public partial class Program
 
         // Add services to the container.
         builder.Services.AddRazorComponents()
-            .AddInteractiveServerComponents();
+            .AddInteractiveServerComponents(o =>
+            {
+                o.DetailedErrors = true;
+            });
         builder.Services.AddHttpClient<ApiClient>(client =>
         {
             var baseUrl = builder.Configuration.GetValue<string>("Api:BaseUrl") ?? "http://localhost:5010";

@@ -8,12 +8,3 @@
 <p role="status" data-testid="counter-status">Current count: @currentCount</p>
 
 <button class="btn btn-primary" data-testid="counter-increment" @onclick="IncrementCount">Click me</button>
-
-@code {
-    private int currentCount = 0;
-
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-}
