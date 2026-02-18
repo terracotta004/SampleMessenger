@@ -8,11 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\\MauiMessenger.Core\\MauiMessenger.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.1" />
+    <ProjectReference Include="..\\MauiMessenger.Client.Shared\\MauiMessenger.Client.Shared.csproj" />
   </ItemGroup>
 
 </Project>
