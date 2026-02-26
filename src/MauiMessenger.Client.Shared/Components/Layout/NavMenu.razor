@@ -1,8 +1,14 @@
 @implements IDisposable
 
 <div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">MauiMessenger</a>
+    <div class="container-fluid nav-brand-wrap">
+        <a class="navbar-brand" href="">
+            <span class="brand-mark">MM</span>
+            <span class="brand-copy">
+                <strong>MauiMessenger</strong>
+                <small>Sample workspace</small>
+            </span>
+        </a>
     </div>
 </div>
 
@@ -10,6 +16,7 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="nav flex-column">
+        <div class="menu-section-label px-3">Workspace</div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
@@ -37,6 +44,7 @@
             </div>
         }
 
+        <div class="menu-section-label px-3 mt-2">Account</div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="login">
                 <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Login
@@ -51,11 +59,11 @@
 
         @if (CurrentUserState.CurrentUser is not null)
         {
-            <div class="nav-item px-3 mt-2 text-white-50">
-                Signed in as <strong class="text-white">@CurrentUserState.CurrentUser.DisplayName</strong>
-            </div>
-            <div class="nav-item px-3">
-                <button class="btn btn-sm btn-outline-light mt-2" type="button" @onclick="Logout">
+            <div class="account-card mx-3 mt-3">
+                <div class="account-label">Signed in as</div>
+                <div class="account-name">@CurrentUserState.CurrentUser.DisplayName</div>
+                <div class="account-user">@CurrentUserState.CurrentUser.Username</div>
+                <button class="btn btn-sm btn-outline-light mt-2 w-100" type="button" @onclick="Logout">
                     Log out
                 </button>
             </div>
