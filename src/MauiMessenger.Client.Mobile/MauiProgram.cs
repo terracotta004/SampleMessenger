@@ -29,7 +29,7 @@ public static class MauiProgram
     private static string GetApiBaseUrl()
     {
 #if ANDROID
-        return "http://10.0.2.2:5010";
+        return "http://192.168.1.158:5010";
 #else
         return "http://localhost:5010";
 #endif

@@ -34,7 +34,11 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+// Keep local LAN testing simple for devices that access the dev API over HTTP.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.MapControllers();
 app.MapHub<MessageHub>("/hubs/messages");
