@@ -1,4 +1,5 @@
 using MauiMessenger.Client.Shared.Services;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace MauiMessenger.Client.Mobile;
@@ -7,6 +8,7 @@ public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
     {
+        var apiBaseUrl = GetApiBaseUrl();
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
@@ -15,8 +17,13 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
             });
 
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Api:BaseUrl"] = apiBaseUrl
+        });
+
         builder.Services.AddMauiBlazorWebView();
-        builder.Services.AddMessengerClientServices(GetApiBaseUrl());
+        builder.Services.AddMessengerClientServices(apiBaseUrl);
 
 #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();
@@ -35,4 +42,3 @@ public static class MauiProgram
 #endif
     }
 }
-

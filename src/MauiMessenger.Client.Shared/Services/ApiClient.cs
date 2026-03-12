@@ -6,6 +6,8 @@ namespace MauiMessenger.Client.Shared.Services;
 public sealed class ApiClient
 {
     private readonly HttpClient _httpClient;
+    public Uri BaseAddress => _httpClient.BaseAddress
+        ?? throw new InvalidOperationException("API base address is not configured.");
 
     public ApiClient(HttpClient httpClient)
     {

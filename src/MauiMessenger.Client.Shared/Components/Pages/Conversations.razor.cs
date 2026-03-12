@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Extensions.Configuration;
 using MauiMessenger.Client.Shared.Services;
 using MauiMessenger.Core.DTOs;
 
@@ -10,7 +9,6 @@ public partial class Conversations
 {
     [Inject] private ApiClient ApiClient { get; set; } = default!;
     [Inject] private CurrentUserState CurrentUserState { get; set; } = default!;
-    [Inject] private IConfiguration Configuration { get; set; } = default!;
 
     private readonly List<UserDto> users = new();
     private readonly List<ConversationDto> conversations = new();
@@ -190,8 +188,7 @@ public partial class Conversations
             return;
         }
 
-        var baseUrl = Configuration.GetValue<string>("Api:BaseUrl") ?? "http://localhost:5010";
-        var hubUrl = $"{baseUrl.TrimEnd('/')}/hubs/messages";
+        var hubUrl = new Uri(ApiClient.BaseAddress, "hubs/messages").ToString();
 
         hubConnection = new HubConnectionBuilder()
             .WithUrl(hubUrl)
