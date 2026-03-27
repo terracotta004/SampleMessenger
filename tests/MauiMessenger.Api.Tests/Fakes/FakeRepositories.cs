@@ -17,7 +17,7 @@ public sealed class FakeUserRepository : IUserRepository
         => Task.FromResult(_users.FirstOrDefault(user => user.Id == id));
 
     public Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default)
-        => Task.FromResult(_users.FirstOrDefault(user => user.Username == username));
+        => Task.FromResult(_users.FirstOrDefault(user => user.UserName == username));
 
     public Task<IReadOnlyList<User>> ListAsync(CancellationToken cancellationToken = default)
         => Task.FromResult<IReadOnlyList<User>>(_users.ToList());

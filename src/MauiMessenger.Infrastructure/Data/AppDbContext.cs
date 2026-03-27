@@ -1,29 +1,64 @@
 using MauiMessenger.Core.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace MauiMessenger.Infrastructure.Data;
 
-public class AppDbContext : DbContext
+public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
     }
 
-    public DbSet<User> Users => Set<User>();
+    public new DbSet<User> Users => Set<User>();
     public DbSet<Conversation> Conversations => Set<Conversation>();
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<ConversationUser> ConversationUsers => Set<ConversationUser>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(u => u.Id);
-            entity.HasIndex(u => u.Username).IsUnique();
-            entity.HasIndex(u => u.Email).IsUnique();
-            entity.Property(u => u.Username).HasMaxLength(100);
+            entity.ToTable("Users");
+            entity.Property(u => u.UserName).HasColumnName("Username").HasMaxLength(100);
+            entity.Property(u => u.NormalizedUserName).HasMaxLength(100);
             entity.Property(u => u.DisplayName).HasMaxLength(200);
             entity.Property(u => u.Email).HasMaxLength(255);
+            entity.Property(u => u.NormalizedEmail).HasMaxLength(255);
+            entity.HasIndex(u => u.NormalizedEmail).IsUnique();
+        });
+
+        modelBuilder.Entity<IdentityRole<Guid>>(entity =>
+        {
+            entity.ToTable("AspNetRoles");
+        });
+
+        modelBuilder.Entity<IdentityUserClaim<Guid>>(entity =>
+        {
+            entity.ToTable("AspNetUserClaims");
+        });
+
+        modelBuilder.Entity<IdentityUserLogin<Guid>>(entity =>
+        {
+            entity.ToTable("AspNetUserLogins");
+        });
+
+        modelBuilder.Entity<IdentityUserToken<Guid>>(entity =>
+        {
+            entity.ToTable("AspNetUserTokens");
+        });
+
+        modelBuilder.Entity<IdentityUserRole<Guid>>(entity =>
+        {
+            entity.ToTable("AspNetUserRoles");
+        });
+
+        modelBuilder.Entity<IdentityRoleClaim<Guid>>(entity =>
+        {
+            entity.ToTable("AspNetRoleClaims");
         });
 
         modelBuilder.Entity<Conversation>(entity =>

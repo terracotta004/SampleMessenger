@@ -40,6 +40,24 @@ public sealed class ApiClient
             ?? throw new InvalidOperationException("API returned an empty response.");
     }
 
+    public async Task LogoutAsync(CancellationToken cancellationToken = default)
+    {
+        var response = await _httpClient.PostAsync("api/auth/logout", content: null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task<UserDto?> GetCurrentUserAsync(CancellationToken cancellationToken = default)
+    {
+        var response = await _httpClient.GetAsync("api/auth/me", cancellationToken);
+        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<UserDto>(cancellationToken: cancellationToken);
+    }
+
     public async Task<IReadOnlyList<ConversationDto>> GetConversationsByUserAsync(
         Guid userId,
         CancellationToken cancellationToken = default)

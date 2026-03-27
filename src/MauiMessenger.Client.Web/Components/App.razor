@@ -1,3 +1,7 @@
+@{
+    var interactiveServer = new InteractiveServerRenderMode(prerender: false);
+}
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -15,8 +19,9 @@
 </head>
 
 <body>
-    <Routes @rendermode="InteractiveServer" />
-    <ReconnectModal @rendermode="InteractiveServer" />
+    <Routes @rendermode="interactiveServer" />
+    <ReconnectModal @rendermode="interactiveServer" />
+    <script src="@Assets["auth.js"]"></script>
     <script src="@Assets["_framework/blazor.web.js"]"></script>
 </body>
 

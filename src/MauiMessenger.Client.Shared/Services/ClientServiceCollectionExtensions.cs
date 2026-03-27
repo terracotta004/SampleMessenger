@@ -9,6 +9,7 @@ public static class ClientServiceCollectionExtensions
         string baseUrl)
     {
         services.AddHttpClient<ApiClient>(client => client.BaseAddress = new Uri(baseUrl));
+        services.AddScoped<IAuthSessionClient, DefaultAuthSessionClient>();
         services.AddScoped<CurrentUserState>();
         return services;
     }

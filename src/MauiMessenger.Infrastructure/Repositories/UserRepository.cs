@@ -32,14 +32,14 @@ public class UserRepository : IUserRepository
     {
         return _dbContext.Users
             .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
+            .FirstOrDefaultAsync(u => u.UserName == username, cancellationToken);
     }
 
     public async Task<IReadOnlyList<User>> ListAsync(CancellationToken cancellationToken = default)
     {
         return await _dbContext.Users
             .AsNoTracking()
-            .OrderBy(u => u.Username)
+            .OrderBy(u => u.UserName)
             .ToListAsync(cancellationToken);
     }
 }
