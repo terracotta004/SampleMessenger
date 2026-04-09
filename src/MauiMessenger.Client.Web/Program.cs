@@ -2,6 +2,7 @@ using MauiMessenger.Client.Web.Components;
 using MauiMessenger.Client.Shared;
 using MauiMessenger.Client.Shared.Components;
 using MauiMessenger.Client.Shared.Services;
+using MauiMessenger.Client.Web.Services;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 
 var app = Program.BuildApp(args);
@@ -34,6 +35,7 @@ public partial class Program
             });
         var baseUrl = builder.Configuration.GetValue<string>("Api:BaseUrl") ?? "http://localhost:5010";
         builder.Services.AddMessengerClientServices(baseUrl);
+        builder.Services.AddScoped<IAuthSessionClient, BrowserAuthSessionClient>();
 
         if (builder.Environment.IsEnvironment("Testing"))
         {

@@ -6,13 +6,18 @@ namespace MauiMessenger.Client.Shared.Components.Pages;
 
 public partial class Login
 {
-    [Inject] private ApiClient ApiClient { get; set; } = default!;
+    [Inject] private IAuthSessionClient AuthSessionClient { get; set; } = default!;
     [Inject] private CurrentUserState CurrentUserState { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
     private LoginForm login = new();
     private bool isSubmitting;
     private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CurrentUserState.EnsureLoadedAsync(AuthSessionClient);
+    }
 
     private async Task LoginAsync()
     {
@@ -22,7 +27,7 @@ public partial class Login
         try
         {
             var request = new LoginRequest(login.Username, login.Password);
-            var user = await ApiClient.LoginAsync(request);
+            var user = await AuthSessionClient.LoginAsync(request);
             CurrentUserState.SetUser(user);
             NavigationManager.NavigateTo("/");
         }

@@ -1,38 +1,19 @@
-using System.Security.Cryptography;
-using System.Text;
 using MauiMessenger.Core.DTOs;
 using MauiMessenger.Core.Entities;
 using MauiMessenger.Core.Interfaces;
+using Microsoft.AspNetCore.Identity;
 
 namespace MauiMessenger.Api.Services;
 
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
+    private readonly UserManager<User> _userManager;
 
-    public UserService(IUserRepository userRepository)
+    public UserService(IUserRepository userRepository, UserManager<User> userManager)
     {
         _userRepository = userRepository;
-    }
-
-    public async Task<UserDto?> AuthenticateAsync(
-        string username,
-        string password,
-        CancellationToken cancellationToken = default)
-    {
-        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
-        {
-            return null;
-        }
-
-        var user = await _userRepository.GetByUsernameAsync(username.Trim(), cancellationToken);
-        if (user is null)
-        {
-            return null;
-        }
-
-        var hash = HashPassword(password);
-        return StringComparer.Ordinal.Equals(user.PasswordHash, hash) ? ToDto(user) : null;
+        _userManager = userManager;
     }
 
     public async Task<UserDto> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken = default)
@@ -41,15 +22,20 @@ public class UserService : IUserService
         var user = new User
         {
             Id = Guid.NewGuid(),
-            Username = request.Username.Trim(),
+            UserName = request.Username.Trim(),
             DisplayName = request.DisplayName.Trim(),
             Email = request.Email.Trim(),
-            PasswordHash = HashPassword(request.Password),
             CreatedAt = now,
             UpdatedAt = now
         };
 
-        var saved = await _userRepository.AddAsync(user, cancellationToken);
+        var result = await _userManager.CreateAsync(user, request.Password);
+        if (!result.Succeeded)
+        {
+            throw new IdentityOperationException(result.Errors.Select(error => error.Description).ToArray());
+        }
+
+        var saved = await _userRepository.GetByIdAsync(user.Id, cancellationToken) ?? user;
         return ToDto(saved);
     }
 
@@ -66,12 +52,5 @@ public class UserService : IUserService
     }
 
     private static UserDto ToDto(User user)
-        => new(user.Id, user.Username, user.DisplayName, user.Email, user.CreatedAt, user.UpdatedAt);
-
-    private static string HashPassword(string password)
-    {
-        var bytes = Encoding.UTF8.GetBytes(password);
-        var hash = SHA256.HashData(bytes);
-        return Convert.ToHexString(hash);
-    }
+        => new(user.Id, user.UserName ?? string.Empty, user.DisplayName, user.Email ?? string.Empty, user.CreatedAt, user.UpdatedAt);
 }

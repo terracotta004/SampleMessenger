@@ -39,4 +39,18 @@ public class UsersControllerTests : IClassFixture<ApiWebApplicationFactory>
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
+
+    [Fact]
+    public async Task Login_WithCreatedUser_ReturnsUser()
+    {
+        var createRequest = new CreateUserRequest("charlie", "Charlie C", "charlie@example.com", "password123");
+        await _client.PostAsJsonAsync("/api/users", createRequest);
+
+        var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", new LoginRequest("charlie", "password123"));
+
+        Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
+        var user = await loginResponse.Content.ReadFromJsonAsync<UserDto>();
+        Assert.NotNull(user);
+        Assert.Equal("charlie", user!.Username);
+    }
 }

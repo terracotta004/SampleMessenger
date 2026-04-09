@@ -1,8 +1,13 @@
-using System.Security.Cryptography;
-using System.Text;
 using MauiMessenger.Api.Services;
-using MauiMessenger.Api.Tests.Fakes;
 using MauiMessenger.Core.DTOs;
+using MauiMessenger.Core.Entities;
+using MauiMessenger.Core.Interfaces;
+using MauiMessenger.Infrastructure.Data;
+using MauiMessenger.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MauiMessenger.Api.Tests;
 
@@ -11,26 +16,30 @@ public class UserServiceTests
     [Fact]
     public async Task CreateAsync_TrimsFieldsAndHashesPassword()
     {
-        var repository = new FakeUserRepository();
-        var service = new UserService(repository);
+        await using var scope = await IdentityTestScope.CreateAsync();
+        var service = scope.ServiceProvider.GetRequiredService<IUserService>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+        var repository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
         var request = new CreateUserRequest(" alice ", " Alice A ", " alice@example.com ", "password123");
 
         var created = await service.CreateAsync(request);
 
         var saved = (await repository.ListAsync()).Single();
-        Assert.Equal("alice", saved.Username);
+        Assert.Equal("alice", saved.UserName);
         Assert.Equal("Alice A", saved.DisplayName);
         Assert.Equal("alice@example.com", saved.Email);
         Assert.Equal(created.Id, saved.Id);
         Assert.Equal(saved.CreatedAt, saved.UpdatedAt);
-        Assert.Equal(HashPassword("password123"), saved.PasswordHash);
+        Assert.False(string.IsNullOrWhiteSpace(saved.PasswordHash));
+        Assert.NotEqual("password123", saved.PasswordHash);
+        Assert.True(await userManager.CheckPasswordAsync(saved, "password123"));
     }
 
     [Fact]
     public async Task ListAsync_ReturnsDtosForStoredUsers()
     {
-        var repository = new FakeUserRepository();
-        var service = new UserService(repository);
+        await using var scope = await IdentityTestScope.CreateAsync();
+        var service = scope.ServiceProvider.GetRequiredService<IUserService>();
         var request = new CreateUserRequest("bob", "Bob B", "bob@example.com", "pass");
 
         await service.CreateAsync(request);
@@ -42,10 +51,57 @@ public class UserServiceTests
         Assert.Equal("bob@example.com", users[0].Email);
     }
 
-    private static string HashPassword(string password)
+    private sealed class IdentityTestScope : IAsyncDisposable
     {
-        var bytes = Encoding.UTF8.GetBytes(password);
-        var hash = SHA256.HashData(bytes);
-        return Convert.ToHexString(hash);
+        private readonly SqliteConnection _connection;
+        private readonly ServiceProvider _provider;
+        private readonly AsyncServiceScope _scope;
+
+        private IdentityTestScope(SqliteConnection connection, ServiceProvider provider, AsyncServiceScope scope)
+        {
+            _connection = connection;
+            _provider = provider;
+            _scope = scope;
+        }
+
+        public IServiceProvider ServiceProvider => _scope.ServiceProvider;
+
+        public static async Task<IdentityTestScope> CreateAsync()
+        {
+            var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddDbContext<AppDbContext>(options => options.UseSqlite(connection));
+            services
+                .AddIdentityCore<User>(options =>
+                {
+                    options.Password.RequireDigit = false;
+                    options.Password.RequiredLength = 4;
+                    options.Password.RequireNonAlphanumeric = false;
+                    options.Password.RequireUppercase = false;
+                    options.Password.RequireLowercase = false;
+                    options.User.RequireUniqueEmail = true;
+                })
+                .AddRoles<IdentityRole<Guid>>()
+                .AddEntityFrameworkStores<AppDbContext>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IUserService, UserService>();
+
+            var provider = services.BuildServiceProvider();
+            var scope = provider.CreateAsyncScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await dbContext.Database.EnsureCreatedAsync();
+
+            return new IdentityTestScope(connection, provider, scope);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await _scope.DisposeAsync();
+            await _provider.DisposeAsync();
+            await _connection.DisposeAsync();
+        }
     }
 }

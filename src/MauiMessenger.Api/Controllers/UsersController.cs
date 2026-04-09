@@ -1,3 +1,4 @@
+using MauiMessenger.Api.Services;
 using MauiMessenger.Core.DTOs;
 using MauiMessenger.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -37,7 +38,19 @@ public class UsersController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<UserDto>> CreateAsync([FromBody] CreateUserRequest request, CancellationToken cancellationToken)
     {
-        var created = await _userService.CreateAsync(request, cancellationToken);
-        return CreatedAtRoute("GetUserById", new { id = created.Id }, created);
+        try
+        {
+            var created = await _userService.CreateAsync(request, cancellationToken);
+            return CreatedAtRoute("GetUserById", new { id = created.Id }, created);
+        }
+        catch (IdentityOperationException exception)
+        {
+            foreach (var error in exception.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error);
+            }
+
+            return ValidationProblem(ModelState);
+        }
     }
 }

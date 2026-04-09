@@ -6,11 +6,13 @@ namespace MauiMessenger.Client.Shared.Components.Layout;
 public partial class NavMenu
 {
     [Inject] private CurrentUserState CurrentUserState { get; set; } = default!;
+    [Inject] private IAuthSessionClient AuthSessionClient { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         CurrentUserState.Changed += OnUserChanged;
+        await CurrentUserState.EnsureLoadedAsync(AuthSessionClient);
     }
 
     private void OnUserChanged()
@@ -18,10 +20,11 @@ public partial class NavMenu
         InvokeAsync(StateHasChanged);
     }
 
-    private void Logout()
+    private async Task Logout()
     {
+        await AuthSessionClient.LogoutAsync();
         CurrentUserState.SetUser(null);
-        NavigationManager.NavigateTo("/");
+        NavigationManager.NavigateTo("/", forceLoad: true);
     }
 
     public void Dispose()
