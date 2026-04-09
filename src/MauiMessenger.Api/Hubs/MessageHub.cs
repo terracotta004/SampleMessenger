@@ -1,8 +1,10 @@
 using MauiMessenger.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace MauiMessenger.Api.Hubs;
 
+[Authorize]
 public class MessageHub : Hub
 {
     public Task JoinConversation(Guid conversationId)

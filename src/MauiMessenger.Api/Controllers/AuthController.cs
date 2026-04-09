@@ -23,6 +23,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [AllowAnonymous]
     public async Task<ActionResult<UserDto>> LoginAsync(
         [FromBody] LoginRequest request,
         CancellationToken cancellationToken)
@@ -52,6 +53,7 @@ public class AuthController : ControllerBase
         return Ok(ToDto(user));
     }
 
+    [Authorize]
     [HttpPost("logout")]
     public async Task<IActionResult> LogoutAsync(CancellationToken cancellationToken)
     {

@@ -1,10 +1,12 @@
 using MauiMessenger.Core.DTOs;
 using MauiMessenger.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MauiMessenger.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/messages")]
 public class MessagesController : ControllerBase
 {
