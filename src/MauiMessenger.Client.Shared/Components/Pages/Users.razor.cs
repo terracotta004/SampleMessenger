@@ -6,7 +6,7 @@ namespace MauiMessenger.Client.Shared.Components.Pages;
 
 public partial class Users
 {
-    [Inject] private ApiClient ApiClient { get; set; } = default!;
+    [Inject] private IApiClient ApiClient { get; set; } = default!;
 
     private List<UserDto>? users;
     private CreateUserForm newUser = new();

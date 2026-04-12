@@ -92,6 +92,7 @@ test-results/
 # Local environment files
 .env
 .env.*
+src/MauiMessenger.Api/appsettings.Local.json
 src/MauiMessenger.Client.Web/bin/Debug/net10.0/MauiMessenger.Client.Web.dll
 src/MauiMessenger.Client.Web/bin/Debug/net10.0/MauiMessenger.Client.Web.dll
 src/MauiMessenger.Client.Web/bin/Debug/net10.0/MauiMessenger.Client.Web.dll

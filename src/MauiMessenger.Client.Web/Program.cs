@@ -35,6 +35,7 @@ public partial class Program
             });
         var baseUrl = builder.Configuration.GetValue<string>("Api:BaseUrl") ?? "http://localhost:5010";
         builder.Services.AddMessengerClientServices(baseUrl);
+        builder.Services.AddScoped<IApiClient, BrowserApiClient>();
         builder.Services.AddScoped<IAuthSessionClient, BrowserAuthSessionClient>();
 
         if (builder.Environment.IsEnvironment("Testing"))
@@ -71,4 +72,3 @@ public partial class Program
         return app;
     }
 }
-

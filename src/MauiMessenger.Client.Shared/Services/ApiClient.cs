@@ -3,7 +3,7 @@ using MauiMessenger.Core.DTOs;
 
 namespace MauiMessenger.Client.Shared.Services;
 
-public sealed class ApiClient
+public class ApiClient : IApiClient
 {
     private readonly HttpClient _httpClient;
     public Uri BaseAddress => _httpClient.BaseAddress
@@ -14,13 +14,13 @@ public sealed class ApiClient
         _httpClient = httpClient;
     }
 
-    public async Task<IReadOnlyList<UserDto>> GetUsersAsync(CancellationToken cancellationToken = default)
+    public virtual async Task<IReadOnlyList<UserDto>> GetUsersAsync(CancellationToken cancellationToken = default)
     {
         return await _httpClient.GetFromJsonAsync<IReadOnlyList<UserDto>>("api/users", cancellationToken)
             ?? Array.Empty<UserDto>();
     }
 
-    public async Task<UserDto> CreateUserAsync(CreateUserRequest request, CancellationToken cancellationToken = default)
+    public virtual async Task<UserDto> CreateUserAsync(CreateUserRequest request, CancellationToken cancellationToken = default)
     {
         var response = await _httpClient.PostAsJsonAsync("api/users", request, cancellationToken);
         response.EnsureSuccessStatusCode();
@@ -28,7 +28,7 @@ public sealed class ApiClient
             ?? throw new InvalidOperationException("API returned an empty response.");
     }
 
-    public async Task<UserDto> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
+    public virtual async Task<UserDto> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
     {
         var response = await _httpClient.PostAsJsonAsync("api/auth/login", request, cancellationToken);
         if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
@@ -40,13 +40,13 @@ public sealed class ApiClient
             ?? throw new InvalidOperationException("API returned an empty response.");
     }
 
-    public async Task LogoutAsync(CancellationToken cancellationToken = default)
+    public virtual async Task LogoutAsync(CancellationToken cancellationToken = default)
     {
         var response = await _httpClient.PostAsync("api/auth/logout", content: null, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task<UserDto?> GetCurrentUserAsync(CancellationToken cancellationToken = default)
+    public virtual async Task<UserDto?> GetCurrentUserAsync(CancellationToken cancellationToken = default)
     {
         var response = await _httpClient.GetAsync("api/auth/me", cancellationToken);
         if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
@@ -58,7 +58,7 @@ public sealed class ApiClient
         return await response.Content.ReadFromJsonAsync<UserDto>(cancellationToken: cancellationToken);
     }
 
-    public async Task<IReadOnlyList<ConversationDto>> GetConversationsByUserAsync(
+    public virtual async Task<IReadOnlyList<ConversationDto>> GetConversationsByUserAsync(
         Guid userId,
         CancellationToken cancellationToken = default)
     {
@@ -68,7 +68,7 @@ public sealed class ApiClient
                ?? Array.Empty<ConversationDto>();
     }
 
-    public async Task<ConversationDto> CreateConversationAsync(
+    public virtual async Task<ConversationDto> CreateConversationAsync(
         CreateConversationRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -78,7 +78,7 @@ public sealed class ApiClient
             ?? throw new InvalidOperationException("API returned an empty response.");
     }
 
-    public async Task<IReadOnlyList<MessageDto>> GetMessagesByConversationAsync(
+    public virtual async Task<IReadOnlyList<MessageDto>> GetMessagesByConversationAsync(
         Guid conversationId,
         CancellationToken cancellationToken = default)
     {
@@ -88,7 +88,7 @@ public sealed class ApiClient
                ?? Array.Empty<MessageDto>();
     }
 
-    public async Task<MessageDto> CreateMessageAsync(
+    public virtual async Task<MessageDto> CreateMessageAsync(
         CreateMessageRequest request,
         CancellationToken cancellationToken = default)
     {

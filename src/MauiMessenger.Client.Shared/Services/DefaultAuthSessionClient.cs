@@ -2,7 +2,7 @@ using MauiMessenger.Core.DTOs;
 
 namespace MauiMessenger.Client.Shared.Services;
 
-public sealed class DefaultAuthSessionClient(ApiClient apiClient) : IAuthSessionClient
+public sealed class DefaultAuthSessionClient(IApiClient apiClient) : IAuthSessionClient
 {
     public Task<UserDto> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
         => apiClient.LoginAsync(request, cancellationToken);

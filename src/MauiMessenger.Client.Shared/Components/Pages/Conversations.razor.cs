@@ -7,7 +7,7 @@ namespace MauiMessenger.Client.Shared.Components.Pages;
 
 public partial class Conversations
 {
-    [Inject] private ApiClient ApiClient { get; set; } = default!;
+    [Inject] private IApiClient ApiClient { get; set; } = default!;
     [Inject] private CurrentUserState CurrentUserState { get; set; } = default!;
 
     private readonly List<UserDto> users = new();
@@ -108,22 +108,31 @@ public partial class Conversations
             return;
         }
 
-        await EnsureHubConnectedAsync();
-        if (hubConnection is not null && selectedConversationId is not null)
-        {
-            await hubConnection.InvokeAsync("LeaveConversation", selectedConversationId.Value);
-        }
+        var previousConversationId = selectedConversationId;
 
         selectedConversationId = conversationId;
         selectedConversation = conversations.FirstOrDefault(c => c.Id == conversationId);
 
         try
         {
+            await EnsureHubConnectedAsync();
+            if (hubConnection is not null && previousConversationId is not null)
+            {
+                await hubConnection.InvokeAsync("LeaveConversation", previousConversationId.Value);
+            }
+
             if (hubConnection is not null)
             {
                 await hubConnection.InvokeAsync("JoinConversation", conversationId);
             }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Real-time updates are unavailable right now. {ex.Message}";
+        }
 
+        try
+        {
             isLoadingMessages = true;
             messages.Clear();
             messages.AddRange(await ApiClient.GetMessagesByConversationAsync(conversationId));
@@ -183,7 +192,16 @@ public partial class Conversations
         {
             if (hubConnection.State == HubConnectionState.Disconnected)
             {
-                await hubConnection.StartAsync();
+                try
+                {
+                    await hubConnection.StartAsync();
+                }
+                catch
+                {
+                    await hubConnection.DisposeAsync();
+                    hubConnection = null;
+                    throw;
+                }
             }
             return;
         }
@@ -219,7 +237,16 @@ public partial class Conversations
             }
         };
 
-        await hubConnection.StartAsync();
+        try
+        {
+            await hubConnection.StartAsync();
+        }
+        catch
+        {
+            await hubConnection.DisposeAsync();
+            hubConnection = null;
+            throw;
+        }
     }
 
     private string GetConversationTitle(ConversationDto conversation)
