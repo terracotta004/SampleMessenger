@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using MauiMessenger.Client.Shared.Services;
 using MauiMessenger.Core.DTOs;
+using MauiMessenger.Core.Entities;
 
 namespace MauiMessenger.Client.Shared.Components.Pages;
 
@@ -31,7 +32,12 @@ public partial class Users
 
         try
         {
-            var request = new CreateUserRequest(newUser.Username, newUser.DisplayName, newUser.Email, newUser.Password);
+            var request = new CreateUserRequest(
+                newUser.Username,
+                newUser.DisplayName,
+                newUser.Email,
+                newUser.Password,
+                newUser.ParticipantType);
             await ApiClient.CreateUserAsync(request);
             newUser = new CreateUserForm();
             await LoadUsersAsync();
@@ -52,5 +58,6 @@ public partial class Users
         public string DisplayName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
+        public ParticipantType ParticipantType { get; set; } = ParticipantType.Human;
     }
 }

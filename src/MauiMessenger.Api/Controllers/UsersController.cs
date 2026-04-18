@@ -18,6 +18,7 @@ public class UsersController : ControllerBase
         _userService = userService;
     }
 
+    [AllowAnonymous]
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<UserDto>>> ListAsync(CancellationToken cancellationToken)
     {
@@ -25,6 +26,7 @@ public class UsersController : ControllerBase
         return Ok(users);
     }
 
+    [AllowAnonymous]
     [HttpGet("{id:guid}", Name = "GetUserById")]
     public async Task<ActionResult<UserDto>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {

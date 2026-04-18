@@ -1,4 +1,5 @@
 @page "/users"
+@using MauiMessenger.Core.Entities
 <PageTitle>Users</PageTitle>
 
 <h1>Users</h1>
@@ -25,6 +26,14 @@
     <div class="mb-3">
         <label class="form-label">Password</label>
         <InputText class="form-control" @bind-Value="newUser.Password" type="password" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Participant type</label>
+        <InputSelect class="form-select" @bind-Value="newUser.ParticipantType">
+            <option value="@ParticipantType.Human">Human</option>
+            <option value="@ParticipantType.Agent">Agent</option>
+        </InputSelect>
     </div>
 
     <button class="btn btn-primary" type="submit" disabled="@isSaving">Create user</button>
@@ -55,11 +64,13 @@ else
                     <strong>@user.DisplayName</strong>
                     <div class="text-muted">@user.Username • @user.Email</div>
                 </div>
-                <span class="badge bg-secondary">@user.Id</span>
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="badge bg-primary">@user.ParticipantType</span>
+                    <span class="badge bg-secondary">@user.Id</span>
+                </div>
             </li>
         }
     </ul>
 }
 
 @inject IJSRuntime JS
-

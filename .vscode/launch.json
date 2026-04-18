@@ -37,6 +37,13 @@
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development"
             }
+        },
+        {
+            "name": "MauiMessenger.Client.Mobile",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "DEVELOPER_DIR=/Applications/Xcode-26.3.app/Contents/Developer /Users/ben/.dotnet/dotnet build ${workspaceFolder}/src/MauiMessenger.Client.Mobile/MauiMessenger.Client.Mobile.csproj -f net10.0-ios -p:RuntimeIdentifier=iossimulator-arm64 -p:_DeviceName=:v2:udid=84479A6F-CFBC-470A-B03D-224B537F212F -t:Run",
+            "cwd": "${workspaceFolder}"
         }
     ],
     "compounds": [
@@ -45,6 +52,13 @@
             "configurations": [
                 "MauiMessenger.Api",
                 "MauiMessenger.Client.Web"
+            ]
+        },
+        {
+            "name": "MauiMessenger.Api + Mobile",
+            "configurations": [
+                "MauiMessenger.Api",
+                "MauiMessenger.Client.Mobile"
             ]
         }
     ]

@@ -77,7 +77,14 @@ public class AuthController : ControllerBase
     }
 
     private static UserDto ToDto(User user)
-        => new(user.Id, user.UserName ?? string.Empty, user.DisplayName, user.Email ?? string.Empty, user.CreatedAt, user.UpdatedAt);
+        => new(
+            user.Id,
+            user.UserName ?? string.Empty,
+            user.DisplayName,
+            user.Email ?? string.Empty,
+            user.ParticipantType,
+            user.CreatedAt,
+            user.UpdatedAt);
 
     private async Task<bool> TryUpgradeLegacyPasswordAsync(User user, string password)
     {

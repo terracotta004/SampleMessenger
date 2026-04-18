@@ -26,6 +26,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.Property(u => u.UserName).HasColumnName("Username").HasMaxLength(100);
             entity.Property(u => u.NormalizedUserName).HasMaxLength(100);
             entity.Property(u => u.DisplayName).HasMaxLength(200);
+            entity.Property(u => u.ParticipantType).HasConversion<int>();
             entity.Property(u => u.Email).HasMaxLength(255);
             entity.Property(u => u.NormalizedEmail).HasMaxLength(255);
             entity.HasIndex(u => u.NormalizedEmail).IsUnique();

@@ -25,6 +25,7 @@ public class UserService : IUserService
             UserName = request.Username.Trim(),
             DisplayName = request.DisplayName.Trim(),
             Email = request.Email.Trim(),
+            ParticipantType = request.ParticipantType,
             CreatedAt = now,
             UpdatedAt = now
         };
@@ -52,5 +53,12 @@ public class UserService : IUserService
     }
 
     private static UserDto ToDto(User user)
-        => new(user.Id, user.UserName ?? string.Empty, user.DisplayName, user.Email ?? string.Empty, user.CreatedAt, user.UpdatedAt);
+        => new(
+            user.Id,
+            user.UserName ?? string.Empty,
+            user.DisplayName,
+            user.Email ?? string.Empty,
+            user.ParticipantType,
+            user.CreatedAt,
+            user.UpdatedAt);
 }

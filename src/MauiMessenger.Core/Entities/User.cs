@@ -5,6 +5,7 @@ namespace MauiMessenger.Core.Entities;
 public class User : IdentityUser<Guid>
 {
     public string DisplayName { get; set; } = string.Empty;
+    public ParticipantType ParticipantType { get; set; } = ParticipantType.Human;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

@@ -22,6 +22,25 @@
             ],
             "problemMatcher": "$msCompile",
             "group": "build"
+        },
+        {
+            "label": "maui: Build MauiMessenger.Client.Mobile",
+            "type": "process",
+            "command": "/Users/ben/.dotnet/dotnet",
+            "args": [
+                "build",
+                "${workspaceFolder}/src/MauiMessenger.Client.Mobile/MauiMessenger.Client.Mobile.csproj",
+                "-f",
+                "net10.0-ios",
+                "-p:RuntimeIdentifier=iossimulator-arm64"
+            ],
+            "problemMatcher": "$msCompile",
+            "options": {
+                "env": {
+                    "DEVELOPER_DIR": "/Applications/Xcode-26.3.app/Contents/Developer"
+                }
+            },
+            "group": "build"
         }
     ]
 }
