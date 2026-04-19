@@ -1,4 +1,4 @@
-# SampleMessenger
+# MauiMessenger
 
 This is a 90% ChatGPT Codex-written repository meant as a blueprint for MauiMessenger.
 
@@ -61,3 +61,17 @@ Now run the API + Client.Web in your chosen IDE (Rider, Visual Studio, Visual St
 
 Rider Multi-Launch Configuration: https://www.jetbrains.com/help/rider/Run_Debug_Multiple.html#multi_launch
 
+
+## Move this repository to a new GitHub project
+
+Use the helper script to push this full repository (all branches + tags) to a `MauiMessenger` repository on GitHub:
+
+```bash
+./scripts/push-to-maui-github.sh git@github.com:<your-user-or-org>/MauiMessenger.git main
+```
+
+If you prefer HTTPS:
+
+```bash
+./scripts/push-to-maui-github.sh https://github.com/<your-user-or-org>/MauiMessenger.git main
+```
