@@ -1,5 +1,4 @@
 @page "/conversations"
-@using Microsoft.AspNetCore.SignalR.Client
 @implements IAsyncDisposable
 
 <PageTitle>Conversations</PageTitle>
@@ -132,7 +131,7 @@ else
                             }
                             else
                             {
-                                <div class="message-list">
+                                <div class="message-list" @ref="messageListElement">
                                     @foreach (var message in messages)
                                     {
                                         <div class="message-row @(CurrentUserState.CurrentUser?.Id == message.SenderId ? "is-own" : string.Empty)" id="@message.Id">

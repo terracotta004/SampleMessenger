@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using MauiMessenger.Api.Services;
 using MauiMessenger.Core.DTOs;
 using MauiMessenger.Core.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -15,11 +16,16 @@ public class AuthController : ControllerBase
 {
     private readonly SignInManager<User> _signInManager;
     private readonly UserManager<User> _userManager;
+    private readonly IRealtimeTokenService _realtimeTokenService;
 
-    public AuthController(SignInManager<User> signInManager, UserManager<User> userManager)
+    public AuthController(
+        SignInManager<User> signInManager,
+        UserManager<User> userManager,
+        IRealtimeTokenService realtimeTokenService)
     {
         _signInManager = signInManager;
         _userManager = userManager;
+        _realtimeTokenService = realtimeTokenService;
     }
 
     [HttpPost("login")]
@@ -74,6 +80,20 @@ public class AuthController : ControllerBase
         }
 
         return Ok(ToDto(user));
+    }
+
+    [Authorize]
+    [HttpGet("realtime-token")]
+    public async Task<ActionResult<RealtimeTokenResponse>> GetRealtimeTokenAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var user = await _userManager.GetUserAsync(User);
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        return Ok(new RealtimeTokenResponse(_realtimeTokenService.CreateToken(user.Id)));
     }
 
     private static UserDto ToDto(User user)

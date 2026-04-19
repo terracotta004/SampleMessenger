@@ -18,7 +18,8 @@
                 "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
             },
             "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development"
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "http://0.0.0.0:5010"
             }
         },
         {
@@ -35,7 +36,8 @@
                 "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
             },
             "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development"
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "http://localhost:5125"
             }
         },
         {
@@ -59,6 +61,14 @@
             "name": "MauiMessenger.Api + Mobile",
             "configurations": [
                 "MauiMessenger.Api",
+                "MauiMessenger.Client.Mobile"
+            ]
+        },
+        {
+            "name": "MauiMessenger.Api + Web + Mobile",
+            "configurations": [
+                "MauiMessenger.Api",
+                "MauiMessenger.Client.Web",
                 "MauiMessenger.Client.Mobile"
             ]
         }

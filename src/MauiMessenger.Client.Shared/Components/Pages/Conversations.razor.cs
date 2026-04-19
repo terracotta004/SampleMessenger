@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.JSInterop;
 using MauiMessenger.Client.Shared.Services;
 using MauiMessenger.Core.DTOs;
 
@@ -8,7 +8,10 @@ namespace MauiMessenger.Client.Shared.Components.Pages;
 public partial class Conversations
 {
     [Inject] private IApiClient ApiClient { get; set; } = default!;
+    [Inject] private IAuthSessionClient AuthSessionClient { get; set; } = default!;
     [Inject] private CurrentUserState CurrentUserState { get; set; } = default!;
+    [Inject] private IRealtimeMessageClient RealtimeClient { get; set; } = default!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
 
     private readonly List<UserDto> users = new();
     private readonly List<ConversationDto> conversations = new();
@@ -23,18 +26,22 @@ public partial class Conversations
     private string? errorMessage;
     private NewConversationForm newConversation = new();
     private NewMessageForm newMessage = new();
-    private HubConnection? hubConnection;
+    private ElementReference messageListElement;
+    private bool shouldScrollMessagesToBottom;
 
     private IEnumerable<UserDto> availableUsers
         => users.Where(u => CurrentUserState.CurrentUser is null || u.Id != CurrentUserState.CurrentUser.Id);
 
     protected override async Task OnInitializedAsync()
     {
+        RealtimeClient.MessageReceived += OnMessageReceivedAsync;
         await LoadAsync();
     }
 
     private async Task LoadAsync()
     {
+        await CurrentUserState.EnsureLoadedAsync(AuthSessionClient);
+
         if (CurrentUserState.CurrentUser is null)
         {
             return;
@@ -54,6 +61,7 @@ public partial class Conversations
         }
         catch (Exception ex)
         {
+            HandleSessionExpired(ex);
             errorMessage = ex.Message;
         }
         finally
@@ -93,6 +101,7 @@ public partial class Conversations
         }
         catch (Exception ex)
         {
+            HandleSessionExpired(ex);
             errorMessage = ex.Message;
         }
         finally
@@ -116,18 +125,16 @@ public partial class Conversations
         try
         {
             await EnsureHubConnectedAsync();
-            if (hubConnection is not null && previousConversationId is not null)
+            if (previousConversationId is not null)
             {
-                await hubConnection.InvokeAsync("LeaveConversation", previousConversationId.Value);
+                await RealtimeClient.LeaveConversationAsync(previousConversationId.Value);
             }
 
-            if (hubConnection is not null)
-            {
-                await hubConnection.InvokeAsync("JoinConversation", conversationId);
-            }
+            await RealtimeClient.JoinConversationAsync(conversationId);
         }
         catch (Exception ex)
         {
+            HandleSessionExpired(ex);
             errorMessage = $"Real-time updates are unavailable right now. {ex.Message}";
         }
 
@@ -139,12 +146,15 @@ public partial class Conversations
         }
         catch (Exception ex)
         {
+            HandleSessionExpired(ex);
             errorMessage = ex.Message;
         }
         finally
         {
             isLoadingMessages = false;
         }
+
+        RequestScrollMessagesToBottom();
     }
 
     private async Task SendMessageAsync()
@@ -173,11 +183,15 @@ public partial class Conversations
 
             var created = await ApiClient.CreateMessageAsync(request);
             if (!messages.Any(existing => existing.Id == created.Id))
+            {
                 messages.Add(created);
+                RequestScrollMessagesToBottom();
+            }
             newMessage = new NewMessageForm();
         }
         catch (Exception ex)
         {
+            HandleSessionExpired(ex);
             errorMessage = ex.Message;
         }
         finally
@@ -188,64 +202,62 @@ public partial class Conversations
 
     private async Task EnsureHubConnectedAsync()
     {
-        if (hubConnection is not null)
+        var token = await ApiClient.GetRealtimeTokenAsync();
+        await RealtimeClient.ConnectAsync(ApiClient.BaseAddress, token.AccessToken);
+    }
+
+    private Task OnMessageReceivedAsync(MessageDto message)
+    {
+        if (selectedConversationId != message.ConversationId)
         {
-            if (hubConnection.State == HubConnectionState.Disconnected)
-            {
-                try
-                {
-                    await hubConnection.StartAsync();
-                }
-                catch
-                {
-                    await hubConnection.DisposeAsync();
-                    hubConnection = null;
-                    throw;
-                }
-            }
+            return Task.CompletedTask;
+        }
+
+        if (messages.Any(existing => existing.Id == message.Id))
+        {
+            return Task.CompletedTask;
+        }
+
+        messages.Add(message);
+        return InvokeAsync(async () =>
+        {
+            RequestScrollMessagesToBottom();
+            StateHasChanged();
+            await Task.CompletedTask;
+        });
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!shouldScrollMessagesToBottom || messages.Count == 0)
+        {
             return;
         }
 
-        var hubUrl = new Uri(ApiClient.BaseAddress, "hubs/messages").ToString();
-
-        hubConnection = new HubConnectionBuilder()
-            .WithUrl(hubUrl)
-            .WithAutomaticReconnect()
-            .Build();
-
-        hubConnection.On<MessageDto>("MessageReceived", message =>
-        {
-            if (selectedConversationId != message.ConversationId)
-            {
-                return Task.CompletedTask;
-            }
-
-            if (messages.Any(existing => existing.Id == message.Id))
-            {
-                return Task.CompletedTask;
-            }
-            if(!messages.Any(existing => existing.Id == message.Id))
-                messages.Add(message);
-            return InvokeAsync(StateHasChanged);
-        });
-
-        hubConnection.Reconnected += async _ =>
-        {
-            if (selectedConversationId is not null)
-            {
-                await hubConnection.InvokeAsync("JoinConversation", selectedConversationId.Value);
-            }
-        };
+        shouldScrollMessagesToBottom = false;
 
         try
         {
-            await hubConnection.StartAsync();
+            await JSRuntime.InvokeVoidAsync("messengerConversations.scrollToBottom", messageListElement);
         }
-        catch
+        catch (JSException ex)
         {
-            await hubConnection.DisposeAsync();
-            hubConnection = null;
-            throw;
+            errorMessage = $"Could not scroll to the latest message. {ex.Message}";
+        }
+    }
+
+    private void RequestScrollMessagesToBottom()
+    {
+        shouldScrollMessagesToBottom = messages.Count > 0;
+    }
+
+    private void HandleSessionExpired(Exception exception)
+    {
+        if (exception.Message.Contains("session has expired", StringComparison.OrdinalIgnoreCase)
+            || exception.Message.Contains("401", StringComparison.OrdinalIgnoreCase)
+            || exception.Message.Contains("Unauthorized", StringComparison.OrdinalIgnoreCase))
+        {
+            CurrentUserState.SetUser(null);
         }
     }
 
@@ -301,10 +313,8 @@ public partial class Conversations
 
     public async ValueTask DisposeAsync()
     {
-        if (hubConnection is not null)
-        {
-            await hubConnection.DisposeAsync();
-        }
+        RealtimeClient.MessageReceived -= OnMessageReceivedAsync;
+        await RealtimeClient.DisposeAsync();
     }
 
     private sealed class NewConversationForm

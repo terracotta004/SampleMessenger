@@ -58,6 +58,14 @@ public class ApiClient : IApiClient
         return await response.Content.ReadFromJsonAsync<UserDto>(cancellationToken: cancellationToken);
     }
 
+    public virtual async Task<RealtimeTokenResponse> GetRealtimeTokenAsync(CancellationToken cancellationToken = default)
+    {
+        var response = await _httpClient.GetAsync("api/auth/realtime-token", cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<RealtimeTokenResponse>(cancellationToken: cancellationToken)
+            ?? throw new InvalidOperationException("API returned an empty response.");
+    }
+
     public virtual async Task<IReadOnlyList<ConversationDto>> GetConversationsByUserAsync(
         Guid userId,
         CancellationToken cancellationToken = default)
