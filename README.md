@@ -1,6 +1,6 @@
 # MauiMessenger
 
-This is a 90% ChatGPT Codex-written repository meant as a blueprint for MauiMessenger.
+This is a 90% ChatGPT Codex-written repository.
 
 Add an .env file with these contents to set up the database:
 
